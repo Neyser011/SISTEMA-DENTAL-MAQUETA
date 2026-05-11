@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DentalSys — Sistema de Gestión Odontológica</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f4f6f8; color: #1a1a1a; min-height: 100vh; display: flex; flex-direction: column; }
+  a { color: inherit; text-decoration: none; }
+
+  /* LAYOUT */
+  .app { display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { background: #ffffff; border-right: 1px solid #e8eaed; width: 210px; min-width: 210px; padding: 0; display: flex; flex-direction: column; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar-logo { padding: 18px 16px 16px; border-bottom: 1px solid #e8eaed; }
+  .logo-wrap { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 32px; height: 32px; background: #1D9E75; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .logo-icon i { font-size: 18px; color: #fff; }
+  .logo-name { font-size: 15px; font-weight: 600; color: #1a1a1a; line-height: 1.1; }
+  .logo-sub { font-size: 10px; color: #888; }
+  .nav-section { padding: 10px 0 4px; flex: 1; display: flex; flex-direction: column; gap: 1px; }
+  .nav-label { font-size: 10px; font-weight: 600; color: #aaa; letter-spacing: .08em; text-transform: uppercase; padding: 8px 16px 4px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; font-size: 13px; cursor: pointer; color: #555; border-radius: 0; transition: all .12s; user-select: none; }
+  .nav-item i { font-size: 17px; }
+  .nav-item:hover { background: #f4f6f8; color: #1a1a1a; }
+  .nav-item.active { background: #E1F5EE; color: #0F6E56; font-weight: 600; }
+  .nav-bottom { margin-top: auto; border-top: 1px solid #e8eaed; padding: 8px 0; }
+
+  /* TOPBAR */
+  .topbar { background: #ffffff; border-bottom: 1px solid #e8eaed; padding: 10px 22px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .page-heading { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+  .search-wrap { display: flex; align-items: center; gap: 8px; background: #f4f6f8; border: 1px solid #e8eaed; border-radius: 8px; padding: 6px 12px; width: 240px; }
+  .search-wrap input { background: transparent; border: none; outline: none; font-size: 13px; color: #1a1a1a; width: 100%; }
+  .search-wrap input::placeholder { color: #aaa; }
+  .search-wrap i { font-size: 15px; color: #aaa; }
+  .top-right { display: flex; align-items: center; gap: 10px; }
+  .badge { border-radius: 20px; padding: 4px 11px; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 5px; }
+  .badge.green { background: #E1F5EE; color: #0F6E56; }
+  .badge.amber { background: #FAEEDA; color: #633806; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: #E1F5EE; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #0F6E56; cursor: pointer; }
+
+  /* CONTENT */
+  .content { padding: 22px; overflow-y: auto; flex: 1; background: #f4f6f8; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .page-title { font-size: 17px; font-weight: 600; color: #1a1a1a; margin-bottom: 3px; }
+  .page-sub { font-size: 12px; color: #888; margin-bottom: 20px; }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: #fff; border: 1px solid #e8eaed; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+  .stat-label { font-size: 11px; color: #888; display: flex; align-items: center; gap: 5px; }
+  .stat-label i { font-size: 14px; }
+  .stat-val { font-size: 24px; font-weight: 700; color: #1a1a1a; }
+  .stat-delta { font-size: 11px; }
+  .stat-delta.up { color: #0F6E56; }
+  .stat-delta.warn { color: #854F0B; }
+
+  /* CARDS */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card { background: #fff; border: 1px solid #e8eaed; border-radius: 12px; padding: 18px; }
+  .card-title { font-size: 13px; font-weight: 600; color: #1a1a1a; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+  .card-title span { font-size: 11px; font-weight: 500; color: #0F6E56; cursor: pointer; }
+
+  /* APPOINTMENTS */
+  .appt-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+  .appt-item:last-child { border-bottom: none; }
+  .appt-time { font-size: 11px; color: #888; min-width: 44px; font-variant-numeric: tabular-nums; }
+  .appt-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; flex-shrink: 0; }
+  .appt-info { flex: 1; }
+  .appt-name { font-size: 12px; font-weight: 500; color: #1a1a1a; }
+  .appt-treat { font-size: 11px; color: #888; }
+
+  /* TAGS */
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+  .tag.confirm { background: #E1F5EE; color: #085041; }
+  .tag.pending { background: #FAEEDA; color: #633806; }
+  .tag.cancel { background: #FCEBEB; color: #501313; }
+  .tag.done { background: #EAF3DE; color: #173404; }
+
+  /* PROGRESS */
+  .progress-bar-wrap { margin-top: 5px; height: 5px; background: #f0f0f0; border-radius: 5px; overflow: hidden; width: 130px; }
+  .progress-bar { height: 100%; border-radius: 5px; background: #1D9E75; }
+
+  /* TABLE */
+  .filter-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filter-row select, .filter-row input { font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid #e8eaed; background: #fff; color: #1a1a1a; outline: none; cursor: pointer; }
+  .filter-row input { width: 200px; }
+  .btn-sm { font-size: 12px; padding: 6px 12px; border-radius: 8px; border: 1px solid #e8eaed; background: #fff; color: #1a1a1a; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: .12s; }
+  .btn-sm:hover { background: #f4f6f8; }
+  .btn-primary { background: #1D9E75; color: #fff; border: none; font-size: 12px; padding: 7px 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; transition: .12s; }
+  .btn-primary:hover { background: #0F6E56; }
+  .table-wrap { border: 1px solid #e8eaed; border-radius: 12px; overflow: hidden; background: #fff; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead { background: #f8fafb; }
+  th { padding: 10px 14px; text-align: left; font-weight: 600; font-size: 11px; color: #888; border-bottom: 1px solid #e8eaed; white-space: nowrap; }
+  td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; color: #1a1a1a; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #fafafa; }
+  .pt-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; flex-shrink: 0; }
+  .row-flex { display: flex; align-items: center; gap: 9px; }
+
+  /* CALENDAR */
+  .cal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-day-label { text-align: center; font-size: 11px; font-weight: 600; color: #888; padding: 5px; }
+  .cal-day { border: 1px solid #e8eaed; border-radius: 8px; padding: 7px; min-height: 72px; background: #fff; cursor: pointer; transition: border-color .12s; }
+  .cal-day:hover { border-color: #1D9E75; }
+  .cal-day.today { border-color: #1D9E75; background: #f0fbf7; }
+  .cal-day.other { opacity: .4; }
+  .cal-num { font-size: 11px; font-weight: 600; color: #888; margin-bottom: 3px; }
+  .cal-day.today .cal-num { color: #0F6E56; }
+  .cal-event { background: #9FE1CB; color: #085041; font-size: 9px; font-weight: 500; padding: 1px 4px; border-radius: 3px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cal-event.orange { background: #FAC775; color: #412402; }
+  .cal-event.red { background: #F0997B; color: #4A1B0C; }
+  .cal-legend { display: flex; gap: 14px; margin-top: 12px; font-size: 11px; color: #888; align-items: center; flex-wrap: wrap; }
+  .cal-legend span { display: flex; align-items: center; gap: 5px; }
+  .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+  /* TREATMENTS */
+  .treat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .treat-card { background: #fff; border: 1px solid #e8eaed; border-radius: 12px; padding: 18px; }
+  .treat-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .treat-card-icon { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .treat-card-icon i { font-size: 19px; }
+  .treat-card-name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+  .treat-card-sub { font-size: 11px; color: #888; margin-top: 1px; }
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: 12px; }
+  .info-row:last-child { border-bottom: none; }
+  .info-key { color: #888; }
+  .info-val { font-weight: 500; color: #1a1a1a; }
+
+  /* FICHA */
+  .patient-header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; background: #fff; border: 1px solid #e8eaed; border-radius: 12px; padding: 16px; }
+  .patient-avatar-lg { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; }
+  .detail-panel { display: grid; grid-template-columns: 1fr 1.4fr; gap: 16px; }
+
+  /* TIMELINE */
+  .timeline { display: flex; flex-direction: column; }
+  .tl-item { display: flex; gap: 12px; padding-bottom: 16px; position: relative; }
+  .tl-item:not(:last-child)::before { content: ''; position: absolute; left: 10px; top: 24px; bottom: 0; width: 1px; background: #e8eaed; }
+  .tl-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #1D9E75; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; }
+  .tl-dot i { font-size: 11px; color: #1D9E75; }
+  .tl-dot.done { background: #1D9E75; }
+  .tl-dot.done i { color: #fff; }
+  .tl-body { flex: 1; }
+  .tl-date { font-size: 10px; color: #aaa; margin-bottom: 1px; }
+  .tl-title { font-size: 12px; font-weight: 600; color: #1a1a1a; }
+  .tl-note { font-size: 11px; color: #888; margin-top: 2px; line-height: 1.5; }
+
+  /* TREAT ITEM */
+  .treat-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f0f0f0; }
+  .treat-row:last-child { border-bottom: none; }
+  .treat-icon { width: 32px; height: 32px; border-radius: 8px; background: #E1F5EE; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .treat-icon i { font-size: 15px; color: #0F6E56; }
+  .treat-info .treat-name { font-size: 12px; font-weight: 600; color: #1a1a1a; }
+  .treat-info .treat-desc { font-size: 11px; color: #888; margin-top: 2px; }
+
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .two-col, .treat-grid, .detail-panel { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-wrap">
+        <div class="logo-icon"><i class="ti ti-tooth"></i></div>
+        <div>
+          <div class="logo-name">DentalSys</div>
+          <div class="logo-sub">Panel clínico</div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Principal</div>
+      <div class="nav-item active" onclick="nav('dashboard',this)"><i class="ti ti-layout-dashboard"></i> Inicio</div>
+      <div class="nav-item" onclick="nav('pacientes',this)"><i class="ti ti-users"></i> Pacientes</div>
+      <div class="nav-item" onclick="nav('citas',this)"><i class="ti ti-calendar"></i> Citas</div>
+      <div class="nav-label">Clínica</div>
+      <div class="nav-item" onclick="nav('tratamientos',this)"><i class="ti ti-stethoscope"></i> Tratamientos</div>
+      <div class="nav-item" onclick="nav('ficha',this)"><i class="ti ti-clipboard-text"></i> Ficha paciente</div>
+    </div>
+    <div class="nav-bottom">
+      <div class="nav-item"><i class="ti ti-settings"></i> Configuración</div>
+      <div class="nav-item"><i class="ti ti-help-circle"></i> Ayuda</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="search-wrap">
+          <i class="ti ti-search"></i>
+          <input placeholder="Buscar paciente, cita...">
+        </div>
+      </div>
+      <div class="top-right">
+        <div class="badge green"><i class="ti ti-calendar-event" style="font-size:13px"></i> 8 citas hoy</div>
+        <div class="badge amber"><i class="ti ti-bell" style="font-size:13px"></i> 2 pendientes</div>
+        <div class="avatar">DR</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ====== DASHBOARD ====== -->
+      <div class="section active" id="s-dashboard">
+        <div class="page-title">Panel de control</div>
+        <div class="page-sub">Resumen del día — lunes 12 de mayo, 2025</div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label"><i class="ti ti-users"></i> Pacientes activos</div>
+            <div class="stat-val">148</div>
+            <div class="stat-delta up">↑ +3 este mes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label"><i class="ti ti-calendar-check"></i> Citas hoy</div>
+            <div class="stat-val">8</div>
+            <div class="stat-delta up">5 confirmadas</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label"><i class="ti ti-clock-pause"></i> En espera</div>
+            <div class="stat-val">2</div>
+            <div class="stat-delta warn">⚠ Confirmar</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label"><i class="ti ti-stethoscope"></i> Tratamientos activos</div>
+            <div class="stat-val">34</div>
+            <div class="stat-delta up">↑ +5 esta semana</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title">Citas de hoy <span onclick="nav('citas',document.querySelectorAll('.nav-item')[2])">Ver todas →</span></div>
+            <div class="appt-item">
+              <div class="appt-time">08:30</div>
+              <div class="appt-avatar" style="background:#E1F5EE;color:#085041">MC</div>
+              <div class="appt-info"><div class="appt-name">María Castillo</div><div class="appt-treat">Limpieza dental</div></div>
+              <span class="tag confirm">Confirmada</span>
+            </div>
+            <div class="appt-item">
+              <div class="appt-time">09:15</div>
+              <div class="appt-avatar" style="background:#E6F1FB;color:#0C447C">JR</div>
+              <div class="appt-info"><div class="appt-name">José Ramírez</div><div class="appt-treat">Extracción molar</div></div>
+              <span class="tag confirm">Confirmada</span>
+            </div>
+            <div class="appt-item">
+              <div class="appt-time">10:00</div>
+              <div class="appt-avatar" style="background:#FAEEDA;color:#633806">LT</div>
+              <div class="appt-info"><div class="appt-name">Luisa Torres</div><div class="appt-treat">Ortodoncia — ajuste</div></div>
+              <span class="tag pending">Pendiente</span>
+            </div>
+            <div class="appt-item">
+              <div class="appt-time">11:30</div>
+              <div class="appt-avatar" style="background:#EEEDFE;color:#3C3489">AP</div>
+              <div class="appt-info"><div class="appt-name">Andrés Paz</div><div class="appt-treat">Blanqueamiento</div></div>
+              <span class="tag confirm">Confirmada</span>
+            </div>
+            <div class="appt-item">
+              <div class="appt-time">14:00</div>
+              <div class="appt-avatar" style="background:#FBEAF0;color:#72243E">CV</div>
+              <div class="appt-info"><div class="appt-name">Carmen Vega</div><div class="appt-treat">Endodoncia</div></div>
+              <span class="tag pending">Pendiente</span>
+            </div>
+            <div class="appt-item">
+              <div class="appt-time">15:30</div>
+              <div class="appt-avatar" style="background:#EAF3DE;color:#173404">RM</div>
+              <div class="appt-info"><div class="appt-name">Roberto Mora</div><div class="appt-treat">Sellante preventivo</div></div>
+              <span class="tag confirm">Confirmada</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Distribución de tratamientos</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:#888">Ortodoncia</span><span style="font-weight:600">28%</span></div>
+                <div style="height:7px;background:#f0f0f0;border-radius:5px"><div style="height:100%;width:28%;background:#1D9E75;border-radius:5px"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:#888">Limpieza dental</span><span style="font-weight:600">22%</span></div>
+                <div style="height:7px;background:#f0f0f0;border-radius:5px"><div style="height:100%;width:22%;background:#5DCAA5;border-radius:5px"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:#888">Extracciones</span><span style="font-weight:600">18%</span></div>
+                <div style="height:7px;background:#f0f0f0;border-radius:5px"><div style="height:100%;width:18%;background:#EF9F27;border-radius:5px"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:#888">Endodoncia</span><span style="font-weight:600">15%</span></div>
+                <div style="height:7px;background:#f0f0f0;border-radius:5px"><div style="height:100%;width:15%;background:#D85A30;border-radius:5px"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:#888">Blanqueamiento</span><span style="font-weight:600">10%</span></div>
+                <div style="height:7px;background:#f0f0f0;border-radius:5px"><div style="height:100%;width:10%;background:#7F77DD;border-radius:5px"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:#888">Otros</span><span style="font-weight:600">7%</span></div>
+                <div style="height:7px;background:#f0f0f0;border-radius:5px"><div style="height:100%;width:7%;background:#aaa;border-radius:5px"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== PACIENTES ====== -->
+      <div class="section" id="s-pacientes">
+        <div class="page-title">Pacientes</div>
+        <div class="page-sub">Listado completo de pacientes registrados</div>
+        <div class="filter-row">
+          <input placeholder="Buscar por nombre o DNI...">
+          <select>
+            <option>Todos los tratamientos</option>
+            <option>Ortodoncia</option>
+            <option>Limpieza dental</option>
+            <option>Endodoncia</option>
+            <option>Extracción</option>
+            <option>Blanqueamiento</option>
+          </select>
+          <select>
+            <option>Todos los estados</option>
+            <option>Activo</option>
+            <option>Alta</option>
+            <option>Inactivo</option>
+          </select>
+          <div style="flex:1"></div>
+          <button class="btn-primary"><i class="ti ti-plus" style="font-size:13px"></i> Nuevo paciente</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Paciente</th>
+                <th>DNI</th>
+                <th>Edad</th>
+                <th>Teléfono</th>
+                <th>Último tratamiento</th>
+                <th>Próxima cita</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="row-flex"><div class="pt-avatar" style="background:#E1F5EE;color:#085041">MC</div>María Castillo</div></td>
+                <td style="color:#888">47382910</td><td>34</td><td style="color:#888">987 654 321</td>
+                <td>Limpieza dental</td><td style="color:#0F6E56;font-weight:600">12 May 2025</td>
+                <td><span class="tag confirm">Activo</span></td>
+                <td><i class="ti ti-eye" style="font-size:16px;color:#888;cursor:pointer" onclick="nav('ficha',document.querySelectorAll('.nav-item')[4])"></i></td>
+              </tr>
+              <tr>
+                <td><div class="row-flex"><div class="pt-avatar" style="background:#E6F1FB;color:#0C447C">JR</div>José Ramírez</div></td>
+                <td style="color:#888">31290485</td><td>41</td><td style="color:#888">912 345 678</td>
+                <td>Extracción molar</td><td style="color:#0F6E56;font-weight:600">12 May 2025</td>
+                <td><span class="tag confirm">Activo</span></td>
+                <td><i class="ti ti-eye" style="font-size:16px;color:#888;cursor:pointer"></i></td>
+              </tr>
+              <tr>
+                <td><div class="row-flex"><div class="pt-avatar" style="background:#FAEEDA;color:#633806">LT</div>Luisa Torres</div></td>
+                <td style="color:#888">58473821</td><td>27</td><td style="color:#888">945 678 901</td>
+                <td>Ortodoncia — ajuste</td><td style="color:#0F6E56;font-weight:600">12 May 2025</td>
+                <td><span class="tag confirm">Activo</span></td>
+                <td><i class="ti ti-eye" style="font-size:16px;color:#888;cursor:pointer"></i></td>
+              </tr>
+              <tr>
+                <td><div class="row-flex"><div class="pt-avatar" style="background:#EEEDFE;color:#3C3489">AP</div>Andrés Paz</div></td>
+                <td style="color:#888">62847391</td><td>29</td><td style="color:#888">998 112 233</td>
+                <td>Blanqueamiento</td><td style="color:#0F6E56;font-weight:600">12 May 2025</td>
+                <td><span class="tag confirm">Activo</span></td>
+                <td><i class="ti ti-eye" style="font-size:16px;color:#888;cursor:pointer"></i></td>
+              </tr>
+              <tr>
+                <td><div class="row-flex"><div class="pt-avatar" style="background:#FBEAF0;color:#72243E">CV</div>Carmen Vega</div></td>
+                <td style="color:#888">74920183</td><td>52</td><td style="color:#888">956 443 210</td>
+                <td>Endodoncia</td><td style="color:#aaa">24 May 2025</td>
+                <td><span class="tag done">Alta</span></td>
+                <td><i class="ti ti-eye" style="font-size:16px;color:#888;cursor:pointer"></i></td>
+              </tr>
+              <tr>
+                <td><div class="row-flex"><div class="pt-avatar" style="background:#EAF3DE;color:#173404">RM</div>Roberto Mora</div></td>
+                <td style="color:#888">83746291</td><td>38</td><td style="color:#888">971 882 334</td>
+                <td>Limpieza dental</td><td style="color:#aaa">28 May 2025</td>
+                <td><span class="tag confirm">Activo</span></td>
+                <td><i class="ti ti-eye" style="font-size:16px;color:#888;cursor:pointer"></i></td>
+              </tr>
+              <tr>
+                <td><div class="row-flex"><div class="pt-avatar" style="background:#FCEBEB;color:#501313">PG</div>Patricia Guzmán</div></td>
+                <td style="color:#888">91823740</td><td>45</td><td style="color:#888">964 773 221</td>
+                <td>Ortodoncia</td><td style="color:#aaa">30 May 2025</td>
+                <td><span class="tag confirm">Activo</span></td>
+                <td><i class="ti ti-eye" style="font-size:16px;color:#888;cursor:pointer"></i></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding:10px 14px;font-size:11px;color:#888;text-align:right">Mostrando 7 de 148 pacientes</div>
+      </div>
+
+      <!-- ====== CITAS ====== -->
+      <div class="section" id="s-citas">
+        <div class="page-title">Agenda de citas</div>
+        <div class="page-sub">Mayo 2025 — haz clic en un día para ver el detalle</div>
+        <div class="cal-header">
+          <button class="btn-sm"><i class="ti ti-chevron-left"></i></button>
+          <span style="font-size:14px;font-weight:600">Mayo 2025</span>
+          <button class="btn-sm"><i class="ti ti-chevron-right"></i></button>
+          <div style="flex:1"></div>
+          <button class="btn-sm"><i class="ti ti-list"></i> Vista lista</button>
+          <button class="btn-primary"><i class="ti ti-plus" style="font-size:13px"></i> Nueva cita</button>
+        </div>
+        <div class="cal-grid" style="margin-bottom:5px">
+          <div class="cal-day-label">Lun</div><div class="cal-day-label">Mar</div><div class="cal-day-label">Mié</div>
+          <div class="cal-day-label">Jue</div><div class="cal-day-label">Vie</div><div class="cal-day-label">Sáb</div><div class="cal-day-label">Dom</div>
+        </div>
+        <div class="cal-grid">
+          <div class="cal-day other"><div class="cal-num">28</div></div>
+          <div class="cal-day other"><div class="cal-num">29</div></div>
+          <div class="cal-day other"><div class="cal-num">30</div></div>
+          <div class="cal-day"><div class="cal-num">1</div></div>
+          <div class="cal-day"><div class="cal-num">2</div><div class="cal-event">Ortodoncia</div></div>
+          <div class="cal-day"><div class="cal-num">3</div></div>
+          <div class="cal-day"><div class="cal-num">4</div></div>
+          <div class="cal-day"><div class="cal-num">5</div><div class="cal-event orange">Extracción</div></div>
+          <div class="cal-day"><div class="cal-num">6</div><div class="cal-event">Limpieza</div></div>
+          <div class="cal-day"><div class="cal-num">7</div></div>
+          <div class="cal-day"><div class="cal-num">8</div><div class="cal-event">Ortodoncia</div><div class="cal-event orange">Blanqueo</div></div>
+          <div class="cal-day"><div class="cal-num">9</div></div>
+          <div class="cal-day"><div class="cal-num">10</div></div>
+          <div class="cal-day"><div class="cal-num">11</div></div>
+          <div class="cal-day today"><div class="cal-num">12</div><div class="cal-event">M. Castillo</div><div class="cal-event">J. Ramírez</div><div class="cal-event orange">L. Torres</div></div>
+          <div class="cal-day"><div class="cal-num">13</div></div>
+          <div class="cal-day"><div class="cal-num">14</div><div class="cal-event red">Endodoncia</div></div>
+          <div class="cal-day"><div class="cal-num">15</div><div class="cal-event">Limpieza</div></div>
+          <div class="cal-day"><div class="cal-num">16</div></div>
+          <div class="cal-day"><div class="cal-num">17</div></div>
+          <div class="cal-day"><div class="cal-num">18</div></div>
+          <div class="cal-day"><div class="cal-num">19</div><div class="cal-event">Ortodoncia</div></div>
+          <div class="cal-day"><div class="cal-num">20</div></div>
+          <div class="cal-day"><div class="cal-num">21</div><div class="cal-event orange">Extracción</div></div>
+          <div class="cal-day"><div class="cal-num">22</div></div>
+          <div class="cal-day"><div class="cal-num">23</div></div>
+          <div class="cal-day"><div class="cal-num">24</div><div class="cal-event">Limpieza</div><div class="cal-event">Ortodoncia</div></div>
+          <div class="cal-day"><div class="cal-num">25</div></div>
+          <div class="cal-day"><div class="cal-num">26</div></div>
+          <div class="cal-day"><div class="cal-num">27</div></div>
+          <div class="cal-day"><div class="cal-num">28</div><div class="cal-event red">Endodoncia</div></div>
+          <div class="cal-day"><div class="cal-num">29</div></div>
+          <div class="cal-day"><div class="cal-num">30</div><div class="cal-event">Limpieza</div></div>
+          <div class="cal-day"><div class="cal-num">31</div></div>
+          <div class="cal-day other"><div class="cal-num">1</div></div>
+        </div>
+        <div class="cal-legend">
+          <span><span class="dot" style="background:#9FE1CB"></span>Limpieza / Ortodoncia</span>
+          <span><span class="dot" style="background:#FAC775"></span>Extracciones / Blanqueamiento</span>
+          <span><span class="dot" style="background:#F0997B"></span>Endodoncia</span>
+          <span><span class="dot" style="background:#e8eaed;border:1px solid #ddd"></span>Disponible</span>
+        </div>
+      </div>
+
+      <!-- ====== TRATAMIENTOS ====== -->
+      <div class="section" id="s-tratamientos">
+        <div class="page-title">Tipos de tratamiento</div>
+        <div class="page-sub">Catálogo de servicios odontológicos disponibles en la clínica</div>
+        <div class="treat-grid">
+          <div class="treat-card">
+            <div class="treat-card-header">
+              <div class="treat-card-icon" style="background:#E1F5EE"><i class="ti ti-sparkles" style="color:#0F6E56"></i></div>
+              <div><div class="treat-card-name">Limpieza dental</div><div class="treat-card-sub">Profilaxis y detartraje</div></div>
+            </div>
+            <div class="info-row"><span class="info-key">Duración</span><span class="info-val">45 min</span></div>
+            <div class="info-row"><span class="info-key">Frecuencia recomendada</span><span class="info-val">Cada 6 meses</span></div>
+            <div class="info-row"><span class="info-key">Número de sesiones</span><span class="info-val">1</span></div>
+            <div class="info-row"><span class="info-key">Pacientes activos</span><span class="info-val" style="color:#0F6E56">32</span></div>
+          </div>
+          <div class="treat-card">
+            <div class="treat-card-header">
+              <div class="treat-card-icon" style="background:#EEEDFE"><i class="ti ti-adjustments" style="color:#3C3489"></i></div>
+              <div><div class="treat-card-name">Ortodoncia</div><div class="treat-card-sub">Brackets y alineadores</div></div>
+            </div>
+            <div class="info-row"><span class="info-key">Duración</span><span class="info-val">30 min / sesión</span></div>
+            <div class="info-row"><span class="info-key">Frecuencia recomendada</span><span class="info-val">Mensual</span></div>
+            <div class="info-row"><span class="info-key">Número de sesiones</span><span class="info-val">12 – 24</span></div>
+            <div class="info-row"><span class="info-key">Pacientes activos</span><span class="info-val" style="color:#3C3489">41</span></div>
+          </div>
+          <div class="treat-card">
+            <div class="treat-card-header">
+              <div class="treat-card-icon" style="background:#FAEEDA"><i class="ti ti-tool" style="color:#633806"></i></div>
+              <div><div class="treat-card-name">Extracción dental</div><div class="treat-card-sub">Simple y quirúrgica</div></div>
+            </div>
+            <div class="info-row"><span class="info-key">Duración</span><span class="info-val">30 – 60 min</span></div>
+            <div class="info-row"><span class="info-key">Frecuencia recomendada</span><span class="info-val">Según necesidad</span></div>
+            <div class="info-row"><span class="info-key">Número de sesiones</span><span class="info-val">1 – 2</span></div>
+            <div class="info-row"><span class="info-key">Pacientes activos</span><span class="info-val" style="color:#854F0B">27</span></div>
+          </div>
+          <div class="treat-card">
+            <div class="treat-card-header">
+              <div class="treat-card-icon" style="background:#FCEBEB"><i class="ti ti-activity" style="color:#793434"></i></div>
+              <div><div class="treat-card-name">Endodoncia</div><div class="treat-card-sub">Tratamiento de conducto</div></div>
+            </div>
+            <div class="info-row"><span class="info-key">Duración</span><span class="info-val">60 – 90 min</span></div>
+            <div class="info-row"><span class="info-key">Frecuencia recomendada</span><span class="info-val">Según diagnóstico</span></div>
+            <div class="info-row"><span class="info-key">Número de sesiones</span><span class="info-val">2 – 4</span></div>
+            <div class="info-row"><span class="info-key">Pacientes activos</span><span class="info-val" style="color:#A32D2D">22</span></div>
+          </div>
+          <div class="treat-card">
+            <div class="treat-card-header">
+              <div class="treat-card-icon" style="background:#E6F1FB"><i class="ti ti-star" style="color:#185FA5"></i></div>
+              <div><div class="treat-card-name">Blanqueamiento</div><div class="treat-card-sub">Consultorio y kit en casa</div></div>
+            </div>
+            <div class="info-row"><span class="info-key">Duración</span><span class="info-val">60 min</span></div>
+            <div class="info-row"><span class="info-key">Frecuencia recomendada</span><span class="info-val">Según necesidad</span></div>
+            <div class="info-row"><span class="info-key">Número de sesiones</span><span class="info-val">1 – 3</span></div>
+            <div class="info-row"><span class="info-key">Pacientes activos</span><span class="info-val" style="color:#185FA5">15</span></div>
+          </div>
+          <div class="treat-card">
+            <div class="treat-card-header">
+              <div class="treat-card-icon" style="background:#EAF3DE"><i class="ti ti-shield-check" style="color:#27500A"></i></div>
+              <div><div class="treat-card-name">Sellantes / Resinas</div><div class="treat-card-sub">Prevención y restauración</div></div>
+            </div>
+            <div class="info-row"><span class="info-key">Duración</span><span class="info-val">30 – 45 min</span></div>
+            <div class="info-row"><span class="info-key">Frecuencia recomendada</span><span class="info-val">Según diagnóstico</span></div>
+            <div class="info-row"><span class="info-key">Número de sesiones</span><span class="info-val">1</span></div>
+            <div class="info-row"><span class="info-key">Pacientes activos</span><span class="info-val" style="color:#3B6D11">19</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== FICHA PACIENTE ====== -->
+      <div class="section" id="s-ficha">
+        <div class="page-title">Ficha de paciente</div>
+        <div class="page-sub">Vista detallada e historial de atenciones</div>
+
+        <div class="patient-header">
+          <div class="patient-avatar-lg" style="background:#E1F5EE;color:#085041">MC</div>
+          <div style="flex:1">
+            <div style="font-size:16px;font-weight:700">María Castillo Ríos</div>
+            <div style="font-size:12px;color:#888;margin-top:2px">DNI 47382910 &nbsp;·&nbsp; 34 años &nbsp;·&nbsp; Femenino &nbsp;·&nbsp; Paciente desde Ene 2023</div>
+          </div>
+          <span class="tag confirm" style="font-size:11px;padding:4px 10px">Activo</span>
+          <button class="btn-sm"><i class="ti ti-edit" style="font-size:13px"></i> Editar</button>
+          <button class="btn-sm"><i class="ti ti-printer" style="font-size:13px"></i> Imprimir</button>
+        </div>
+
+        <div class="detail-panel">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="card">
+              <div class="card-title">Datos personales</div>
+              <div class="info-row"><span class="info-key"><i class="ti ti-phone" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>Teléfono</span><span class="info-val">987 654 321</span></div>
+              <div class="info-row"><span class="info-key"><i class="ti ti-mail" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>Correo</span><span class="info-val" style="font-size:11px">m.castillo@mail.com</span></div>
+              <div class="info-row"><span class="info-key"><i class="ti ti-map-pin" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>Dirección</span><span class="info-val" style="font-size:11px">Av. Lima 430, Lima</span></div>
+              <div class="info-row"><span class="info-key"><i class="ti ti-heart" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>Seguro</span><span class="info-val">SIS</span></div>
+              <div class="info-row"><span class="info-key"><i class="ti ti-alert-triangle" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>Alergias</span><span class="info-val" style="color:#A32D2D">Penicilina</span></div>
+              <div class="info-row"><span class="info-key"><i class="ti ti-notes" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>Observaciones</span><span class="info-val" style="font-size:11px">Ansiedad dental leve</span></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Tratamientos actuales</div>
+              <div class="treat-row">
+                <div class="treat-icon"><i class="ti ti-sparkles"></i></div>
+                <div class="treat-info">
+                  <div class="treat-name">Limpieza dental</div>
+                  <div class="treat-desc">Sesión 1 de 1 &nbsp;·&nbsp; En curso</div>
+                  <div class="progress-bar-wrap"><div class="progress-bar" style="width:60%"></div></div>
+                </div>
+              </div>
+              <div class="treat-row">
+                <div class="treat-icon" style="background:#EEEDFE"><i class="ti ti-adjustments" style="color:#3C3489"></i></div>
+                <div class="treat-info">
+                  <div class="treat-name">Ortodoncia</div>
+                  <div class="treat-desc">Sesión 8 de 18 &nbsp;·&nbsp; En curso</div>
+                  <div class="progress-bar-wrap"><div class="progress-bar" style="width:44%;background:#534AB7"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Historial de atenciones</div>
+            <div class="timeline">
+              <div class="tl-item">
+                <div class="tl-dot done"><i class="ti ti-check"></i></div>
+                <div class="tl-body">
+                  <div class="tl-date">12 May 2025 &nbsp;·&nbsp; 08:30</div>
+                  <div class="tl-title">Limpieza dental</div>
+                  <div class="tl-note">Profilaxis completa. Sin caries detectadas. Control en 6 meses.</div>
+                </div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-dot done"><i class="ti ti-check"></i></div>
+                <div class="tl-body">
+                  <div class="tl-date">08 Abr 2025 &nbsp;·&nbsp; 10:00</div>
+                  <div class="tl-title">Ortodoncia — ajuste #8</div>
+                  <div class="tl-note">Ajuste de arco superior. Evolución satisfactoria. Próximo ajuste en 4 semanas.</div>
+                </div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-dot done"><i class="ti ti-check"></i></div>
+                <div class="tl-body">
+                  <div class="tl-date">10 Mar 2025 &nbsp;·&nbsp; 11:00</div>
+                  <div class="tl-title">Ortodoncia — ajuste #7</div>
+                  <div class="tl-note">Sin novedades. La paciente tolera bien el tratamiento.</div>
+                </div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-dot done"><i class="ti ti-check"></i></div>
+                <div class="tl-body">
+                  <div class="tl-date">05 Feb 2025 &nbsp;·&nbsp; 09:30</div>
+                  <div class="tl-title">Radiografía panorámica</div>
+                  <div class="tl-note">Diagnóstico de maloclusión clase II. Plan de tratamiento de ortodoncia aprobado.</div>
+                </div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-dot done"><i class="ti ti-check"></i></div>
+                <div class="tl-body">
+                  <div class="tl-date">18 Ene 2025 &nbsp;·&nbsp; 08:00</div>
+                  <div class="tl-title">Primera consulta</div>
+                  <div class="tl-note">Evaluación inicial. Registro fotográfico y de modelos. Se indica estudio radiográfico.</div>
+                </div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-dot"><i class="ti ti-clock"></i></div>
+                <div class="tl-body">
+                  <div class="tl-date">08 Jun 2025 &nbsp;·&nbsp; 10:00</div>
+                  <div class="tl-title">Ortodoncia — ajuste #9</div>
+                  <div class="tl-note" style="color:#0F6E56">Próxima cita programada</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function nav(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+}
+</script>
+</body>
+</html>
